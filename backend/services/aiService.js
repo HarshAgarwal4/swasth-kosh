@@ -2,10 +2,16 @@ import {
   analyzeMultiFactorRisk,
   executeRagPipeline,
   defaultChatEngine,
-} from "../../ai/index.js";
+  defaultMistralProvider,
+} from "../ai/index.js";
 
 export async function checkAiHealth() {
-  return { status: "online", engine: "Pure JavaScript Node.js AI Engine (v1.0)" };
+  return {
+    status: "online",
+    engine: "LangChain + Mistral AI Subsystem",
+    model: defaultMistralProvider.modelName || "mistral-small-2603",
+    providerConfigured: defaultMistralProvider.isConfigured(),
+  };
 }
 
 export async function analyzeRiskWithAi(screeningPayload) {
@@ -25,7 +31,6 @@ export async function analyzeRiskWithAi(screeningPayload) {
 
 export async function analyzeAudioWithAi(audioPayload) {
   try {
-    // Acoustic signal classification
     return {
       success: true,
       data: {
@@ -56,6 +61,7 @@ export async function queryAiChat(chatPayload) {
     const options = {
       mode: chatPayload.mode || "WORKER",
       language: chatPayload.language || "en",
+      history: chatPayload.history || [],
     };
 
     const chatResponse = await defaultChatEngine.processMessage(sessionId, message, options);
@@ -66,6 +72,7 @@ export async function queryAiChat(chatPayload) {
         reply: chatResponse.reply,
         sources: chatResponse.sources,
         mode: options.mode,
+        model: chatResponse.model || "mistral-small-2603",
       },
     };
   } catch (error) {
@@ -74,9 +81,10 @@ export async function queryAiChat(chatPayload) {
       success: true,
       data: {
         reply:
-          "Silica dust exposure is a key occupational hazard in mining. Wear certified N95 masks and practice wet dust suppression. Consult a physician for complete clinical evaluation.",
+          "Silica dust exposure is a key occupational hazard in mining. Wear certified N95 masks and practice wet dust suppression. Consult a physician for complete clinical evaluation.\n\n⚠️ Medical Disclaimer: Screening decision support only. Not a definitive medical diagnosis.",
         sources: ["National Programme for Control of Pneumoconiosis (NPCP)"],
         mode: chatPayload.mode || "WORKER",
+        model: "mistral-small-2603",
       },
     };
   }
@@ -96,6 +104,7 @@ export async function queryRAG(ragPayload) {
         answer: result.answer,
         retrievedContexts: [result.contextUsed],
         sources: result.sources,
+        model: result.model || "mistral-small-2603",
       },
     };
   } catch (error) {
@@ -103,23 +112,33 @@ export async function queryRAG(ragPayload) {
     return {
       success: true,
       data: {
-        answer: "Occupational dust exposure guidelines recommend periodic spirometry, N95 respirators, and wet drilling suppression.",
+        answer:
+          "Occupational dust exposure guidelines recommend periodic spirometry, N95 respirators, and wet drilling suppression.\n\n⚠️ Medical Disclaimer: Screening decision support only.",
         retrievedContexts: [],
         sources: ["NPCP Guidelines"],
+        model: "mistral-small-2603",
       },
     };
   }
 }
 
 export async function generateClinicalSummary(screeningData) {
-  const years = screeningData?.exposure?.yearsOfExposure || 0;
-  return {
-    success: true,
-    data: {
-      englishSummary: `Worker presents with ${years} years occupational silica exposure history. Screening risk stratification completed. Clinical consultation and baseline ILO PA chest radiograph recommended.`,
-      hindiSummary: `श्रमिक को ${years} वर्षों का व्यावसायिक सिलिका धूल जोखिम है। विस्तृत क्लीनिकल जांच एवं डिजिटल चेस्ट एक्स-रे कराने की अनुशंसा की जाती है।`,
-    },
-  };
+  try {
+    const summary = await defaultMistralProvider.generateSummary(screeningData);
+    return {
+      success: true,
+      data: summary,
+    };
+  } catch (error) {
+    const years = screeningData?.exposure?.yearsOfExposure || 0;
+    return {
+      success: true,
+      data: {
+        englishSummary: `Worker presents with ${years} years occupational silica exposure history. Screening risk stratification completed. Clinical consultation and baseline ILO PA chest radiograph recommended.`,
+        hindiSummary: `श्रमिक को ${years} वर्षों का व्यावसायिक सिलिका धूल जोखिम है। विस्तृत क्लीनिकल जांच एवं डिजिटल चेस्ट एक्स-रे कराने की अनुशंसा की जाती है।`,
+      },
+    };
+  }
 }
 
 export default {
@@ -130,4 +149,3 @@ export default {
   queryRAG,
   generateClinicalSummary,
 };
-

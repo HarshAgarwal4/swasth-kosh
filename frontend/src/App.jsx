@@ -5,6 +5,7 @@ import { useStore } from './zustand/store';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getSocket } from './services/socket';
+import FloatingChatbot from './components/FloatingChatbot';
 
 function App() {
   const fetchUser = useStore((state) => state.fetchUser);
@@ -35,10 +36,10 @@ function App() {
   return (
     <>
       <RouterProvider router={Routes} />
+      <FloatingChatbot />
       <ToastContainer position="top-right" autoClose={3500} />
     </>
   );
 }
 
 export default App;
-
