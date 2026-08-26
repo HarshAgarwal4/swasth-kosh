@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_REACT_APP_BACKEND_URL=http://localhost:4000
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - DB_URL=mongodb://mongodb:27017/VideoCallApp
+      - FRONTEND_URL=http://localhost:5173
+      - AI_SERVICE_URL=http://ai:8000
+      - AI_SERVICE_KEY=silicosis_ai_secret_key_2026
+    depends_on:
+      - mongodb
+      - redis
+      - ai
+
+  ai:
+    build:
+      context: ./ai
+    ports:
+      - "8000:8000"
+    environment:
+      - AI_PORT=8000
+      - AI_HOST=0.0.0.0
+      - AI_SERVICE_KEY=silicosis_ai_secret_key_2026
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  mongo_data:
