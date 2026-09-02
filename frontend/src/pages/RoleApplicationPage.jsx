@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import axios from "../services/axios";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
+import SidebarLayout from "../components/SidebarLayout";
 
 const RoleApplicationPage = () => {
   const { token } = useParams();
@@ -83,20 +83,18 @@ const RoleApplicationPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center text-xs text-slate-500">
+      <SidebarLayout>
+        <div className="flex-1 flex items-center justify-center text-xs text-slate-500 py-16">
           Loading verification form...
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
   if (!application) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center p-6 text-center">
+      <SidebarLayout>
+        <div className="flex-1 flex items-center justify-center p-6 text-center py-16">
           <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-lg max-w-md w-full">
             <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
             <h3 className="font-bold text-slate-900 text-lg">Invalid or Expired Link</h3>
@@ -111,7 +109,7 @@ const RoleApplicationPage = () => {
             </Link>
           </div>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
@@ -119,9 +117,7 @@ const RoleApplicationPage = () => {
   const requestedRole = application.requestedRole;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
-
+    <SidebarLayout>
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-8">
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
           {/* Header Banner */}
@@ -282,7 +278,7 @@ const RoleApplicationPage = () => {
           </div>
         </div>
       </main>
-    </div>
+    </SidebarLayout>
   );
 };
 

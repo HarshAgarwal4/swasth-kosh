@@ -23,7 +23,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import axios from "../services/axios";
 import { useStore } from "../zustand/store";
-import Navbar from "../components/Navbar";
+import SidebarLayout from "../components/SidebarLayout";
 
 const AiAssistantPage = () => {
   const user = useStore((state) => state.user);
@@ -187,7 +187,7 @@ const AiAssistantPage = () => {
           content: m.content,
         })),
       });
-
+      console.log(res.data)
       if (res.data?.success) {
         const aiData = res.data.data;
         setMessages([
@@ -217,9 +217,7 @@ const AiAssistantPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
-
+    <SidebarLayout>
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col space-y-4">
         {/* Top Intelligence Banner */}
         <div className="bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-5 sm:p-6 text-white shadow-xl flex flex-wrap items-center justify-between gap-4">
@@ -473,7 +471,7 @@ const AiAssistantPage = () => {
           </form>
         </div>
       </main>
-    </div>
+    </SidebarLayout>
   );
 };
 

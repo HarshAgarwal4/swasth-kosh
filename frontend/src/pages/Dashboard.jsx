@@ -14,10 +14,11 @@ import {
   User,
   ShieldCheck,
   RefreshCw,
+  Shield,
 } from "lucide-react";
 import { useStore } from "../zustand/store";
 import axios from "../services/axios";
-import Navbar from "../components/Navbar";
+import SidebarLayout from "../components/SidebarLayout";
 import OfflineBanner from "../components/OfflineBanner";
 import RiskBadge from "../components/RiskBadge";
 
@@ -30,6 +31,8 @@ export const Dashboard = () => {
   const [screenings, setScreenings] = useState([]);
   const [referrals, setReferrals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   useEffect(() => {
     fetchDashboardData();
@@ -61,11 +64,10 @@ export const Dashboard = () => {
   const currentScore = latestScreening?.riskAssessmentId?.overallScore || 15;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
+    <SidebarLayout>
       <OfflineBanner />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Welcome Header */}
         <div className="bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -77,7 +79,7 @@ export const Dashboard = () => {
               <h1 className="text-2xl sm:text-3xl font-extrabold">
                 {isHindi ? `नमस्ते, ${user?.name || "श्रमिक"}` : `Welcome, ${user?.name || "Worker"}`} 👋
               </h1>
-              <p className="text-slate-300 text-sm mt-1 max-w-xl">
+              <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl">
                 {isHindi
                   ? "अपनी नियमित श्वसन जांच पूरी करें, जोखिम स्तर ट्रैक करें और चिकित्सकों से संपर्क में रहें।"
                   : "Track your respiratory health index, start new screenings, and access telemedicine consultations."}
@@ -85,6 +87,16 @@ export const Dashboard = () => {
             </div>
 
             <div className="flex flex-wrap gap-3">
+              {isAdmin && (
+                <button
+                  onClick={() => navigate("/admin")}
+                  className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 px-5 py-3 rounded-xl font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition active:scale-95 border border-amber-300/40"
+                >
+                  <Shield className="w-4 h-4 fill-slate-950" />
+                  {isHindi ? "एडमिन पैनल" : "Admin Panel"}
+                </button>
+              )}
+
               <button
                 onClick={() => navigate("/screening/start")}
                 className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md transition active:scale-95"
@@ -104,8 +116,46 @@ export const Dashboard = () => {
           </div>
         </div>
 
+        {/* ADMIN / SUPER ADMIN DEDICATED ADMIN PANEL OPTION BANNER */}
+        {isAdmin && (
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-amber-400/40 rounded-3xl p-6 shadow-2xl text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/30 text-amber-400 flex items-center justify-center shrink-0 shadow-inner">
+                  <Shield className="w-8 h-8" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30 font-mono tracking-wider uppercase">
+                      {user?.role === "SUPER_ADMIN" ? "Super Admin Access" : "Admin Governance"}
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white">
+                    {isHindi ? "स्वास्थ्यकोश एडमिन पैनल" : "SwasthaKosh Admin Panel"}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
+                    {isHindi
+                      ? "उपयोगकर्ता भूमिकाएं प्रबंधित करें, डॉक्टर क्रेडेंशियल अनुरोधों की समीक्षा करें, और प्लेटफ़ॉर्म एनालिटिक्स देखें।"
+                      : "Access workforce governance, review medical credential applications, manage dynamic forms, and monitor platform audit logs."}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate("/admin")}
+                className="inline-flex items-center justify-center gap-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-6 py-3.5 rounded-2xl text-xs sm:text-sm shadow-xl shadow-amber-500/20 transition active:scale-95 shrink-0"
+              >
+                <Shield className="w-5 h-5 fill-slate-950" />
+                <span>{isHindi ? "एडमिन पैनल में जाएं" : "Go to Admin Panel"}</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Quick Health Status Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {/* Current Risk Card */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
             <span className="text-xs font-semibold text-slate-500 block mb-2">
@@ -185,7 +235,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Screening History & Longitudinal Records */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-bold text-slate-900">
@@ -281,7 +331,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Safety & Prevention Guideline Card */}
-        <div className="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-6">
+        <div className="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-5 sm:p-6">
           <h3 className="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-indigo-600" />
             {isHindi ? "कार्यस्थल पर सुरक्षा निर्देश" : "Occupational Safety Guidelines"}
@@ -293,6 +343,8 @@ export const Dashboard = () => {
           </ul>
         </div>
       </main>
-    </div>
+    </SidebarLayout>
   );
 };
+
+export default Dashboard;

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import RespiratoryAudio from "../models/RespiratoryAudio.js";
 import Screening from "../models/Screening.js";
-import { uploadFileToCloud } from "../../services/upload.js";
 import { analyzeAudioWithAi } from "../../services/aiService.js";
 
 export async function uploadAndAnalyzeAudio(req, res) {
@@ -10,17 +9,12 @@ export async function uploadAndAnalyzeAudio(req, res) {
     let audioUrl = req.body.audioUrl;
 
     if (req.file) {
-      try {
-        const uploadResult = await uploadFileToCloud(req.file.buffer, req.file.originalname || "lung_audio.wav");
-        audioUrl = uploadResult.secure_url;
-      } catch (err) {
-        console.warn("Cloudinary upload error:", err.message);
-        audioUrl = `https://res.cloudinary.com/demo/video/upload/sample_audio_${Date.now()}.wav`;
-      }
+      // Direct base64 audio data URL - NO Cloudinary upload
+      audioUrl = `data:${req.file.mimetype || "audio/wav"};base64,${req.file.buffer.toString("base64")}`;
     }
 
     if (!audioUrl) {
-      audioUrl = "https://res.cloudinary.com/demo/video/upload/sample_audio.wav";
+      audioUrl = "local_audio_stream";
     }
 
     // Call FastAPI AI service

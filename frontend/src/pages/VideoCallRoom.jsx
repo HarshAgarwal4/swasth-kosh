@@ -17,7 +17,7 @@ import { createPeerConnection, createOffer, createAnswer, handleAnswer, handleIc
 import { useStore } from "../zustand/store";
 import axios from "../services/axios";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
+import SidebarLayout from "../components/SidebarLayout";
 
 const VideoCallRoom = () => {
   const { roomId } = useParams();
@@ -187,10 +187,8 @@ const VideoCallRoom = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col font-sans">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-4">
+    <SidebarLayout>
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-4 bg-slate-950">
         {/* Main Video Stage */}
         <div className="flex-1 flex flex-col justify-between bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden relative shadow-2xl min-h-[500px]">
           {/* Header Bar */}
@@ -351,7 +349,7 @@ const VideoCallRoom = () => {
           </div>
         )}
       </main>
-    </div>
+    </SidebarLayout>
   );
 };
 

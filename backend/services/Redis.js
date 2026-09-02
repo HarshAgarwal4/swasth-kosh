@@ -1,6 +1,4 @@
 import { Redis } from "@upstash/redis";
-import dotenv from "dotenv";
-dotenv.config();
 
 let redis = null;
 const memoryCache = new Map();

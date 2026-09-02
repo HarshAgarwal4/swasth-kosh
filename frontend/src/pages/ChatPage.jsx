@@ -19,7 +19,7 @@ import {
 import { getSocket } from "../services/socket";
 import axios from "../services/axios";
 import { useStore } from "../zustand/store";
-import Navbar from "../components/Navbar";
+import SidebarLayout from "../components/SidebarLayout";
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -136,9 +136,7 @@ const ChatPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
-      <Navbar />
-
+    <SidebarLayout>
       <main className="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-6 flex flex-col">
         {/* WhatsApp-Style App Container */}
         <div className="flex-1 bg-white rounded-3xl border border-slate-300 shadow-xl flex overflow-hidden h-[calc(100vh-120px)] min-h-[580px]">
@@ -323,7 +321,7 @@ const ChatPage = () => {
           </div>
         </div>
       </main>
-    </div>
+    </SidebarLayout>
   );
 };
 

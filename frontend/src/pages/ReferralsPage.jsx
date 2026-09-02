@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import axios from "../services/axios";
 import { useStore } from "../zustand/store";
-import Navbar from "../components/Navbar";
+import SidebarLayout from "../components/SidebarLayout";
 
 const ReferralsPage = () => {
   const user = useStore((state) => state.user);
@@ -45,9 +45,7 @@ const ReferralsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
-
+    <SidebarLayout>
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Header */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -204,7 +202,7 @@ const ReferralsPage = () => {
           </div>
         </div>
       </main>
-    </div>
+    </SidebarLayout>
   );
 };
 

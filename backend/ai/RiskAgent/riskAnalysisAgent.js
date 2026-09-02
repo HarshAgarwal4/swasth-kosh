@@ -142,3 +142,7 @@ export function analyzeMultiFactorRisk({ exposure = {}, symptoms = {}, spirometr
     calculatedAt: new Date(),
   };
 }
+
+export default {
+  analyzeMultiFactorRisk,
+};

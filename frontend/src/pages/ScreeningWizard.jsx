@@ -18,7 +18,7 @@ import axios from "../services/axios";
 import { useStore } from "../zustand/store";
 import { saveOfflineScreening } from "../services/indexedDb";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
+import SidebarLayout from "../components/SidebarLayout";
 import OfflineBanner from "../components/OfflineBanner";
 import AudioRecorder from "../components/AudioRecorder";
 
@@ -164,8 +164,8 @@ const ScreeningWizard = () => {
           pef: Number(formData.pef),
         },
         audioData: audioData || {
-          audioUrl: "https://res.cloudinary.com/demo/video/upload/cough_sample.wav",
-          durationSeconds: 5,
+          audioUrl: "local_audio_stream",
+          durationSeconds: 10,
           recordingType: "COUGH",
           aiAnalysis: {
             status: "COMPLETED",
@@ -214,8 +214,7 @@ const ScreeningWizard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
+    <SidebarLayout>
       <OfflineBanner />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8">
@@ -709,7 +708,7 @@ const ScreeningWizard = () => {
           </form>
         </div>
       </main>
-    </div>
+    </SidebarLayout>
   );
 };
 

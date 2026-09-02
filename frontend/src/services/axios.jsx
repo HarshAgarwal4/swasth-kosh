@@ -1,6 +1,8 @@
 import axios from 'axios';
 
+const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || "http://localhost:4000";
+
 export default axios.create({
-    baseURL: import.meta.env.VITE_REACT_APP_BACKEND_URL,
-    withCredentials: true
-})
+  baseURL: backendUrl,
+  withCredentials: true,
+});

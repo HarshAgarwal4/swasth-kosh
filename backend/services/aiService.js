@@ -1,14 +1,12 @@
-import {
-  analyzeMultiFactorRisk,
-  executeRagPipeline,
-  defaultChatEngine,
-  defaultMistralProvider,
-} from "../ai/index.js";
+import { defaultMistralProvider } from "../ai/providers/mistralProvider.js";
+import { SYSTEM_WORKER_PROMPT, SYSTEM_DOCTOR_PROMPT } from "../ai/prompts/systemPrompts.js";
+import { analyzeMultiFactorRisk } from "../ai/RiskAgent/riskAnalysisAgent.js";
+import { executeRagPipeline } from "../ai/rag/RAG.js";
 
 export async function checkAiHealth() {
   return {
     status: "online",
-    engine: "LangChain + Mistral AI Subsystem",
+    engine: "SwasthaKosh Simple AI Subsystem",
     model: defaultMistralProvider.modelName || "mistral-small-2603",
     providerConfigured: defaultMistralProvider.isConfigured(),
   };
@@ -56,7 +54,6 @@ export async function analyzeAudioWithAi(audioPayload) {
 
 export async function queryAiChat(chatPayload) {
   try {
-    const sessionId = chatPayload.sessionId || "default_session";
     const message = chatPayload.message || "";
     const options = {
       mode: chatPayload.mode || "WORKER",
@@ -64,15 +61,16 @@ export async function queryAiChat(chatPayload) {
       history: chatPayload.history || [],
     };
 
-    const chatResponse = await defaultChatEngine.processMessage(sessionId, message, options);
+    const systemPrompt = options.mode === "DOCTOR" ? SYSTEM_DOCTOR_PROMPT : SYSTEM_WORKER_PROMPT;
+    const replyText = await defaultMistralProvider.generateResponse(message, systemPrompt, options);
 
     return {
       success: true,
       data: {
-        reply: chatResponse.reply,
-        sources: chatResponse.sources,
+        reply: replyText,
+        sources: ["National Programme for Control of Pneumoconiosis (NPCP)"],
         mode: options.mode,
-        model: chatResponse.model || "mistral-small-2603",
+        model: defaultMistralProvider.modelName,
       },
     };
   } catch (error) {
@@ -104,7 +102,7 @@ export async function queryRAG(ragPayload) {
         answer: result.answer,
         retrievedContexts: [result.contextUsed],
         sources: result.sources,
-        model: result.model || "mistral-small-2603",
+        model: defaultMistralProvider.modelName,
       },
     };
   } catch (error) {

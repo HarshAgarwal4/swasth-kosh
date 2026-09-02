@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -21,11 +22,15 @@ import {
   AlertTriangle,
   MapPin,
   RefreshCw,
+  ArrowLeft,
+  Shield,
+  LayoutDashboard,
 } from "lucide-react";
 import axios from "../services/axios";
-import Navbar from "../components/Navbar";
+import AdminSidebar from "../components/AdminSidebar";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -64,60 +69,87 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
+    <AdminSidebar>
+      <div className="flex-1 bg-slate-950 text-slate-100 font-sans pb-12">
+      {/* Dedicated Standalone Admin Analytics Header */}
+      <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 px-4 sm:px-8 py-4 shadow-2xl">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/admin")}
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+              title="Return to Master Admin Panel"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Header */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md mb-2">
-              <BarChart3 className="w-4 h-4" />
-              Mining Cluster & District Health Surveillance
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                <BarChart3 className="w-6 h-6 text-indigo-400" />
+                Epidemiology & Occupational Screening Analytics
+              </h1>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Population-level monitoring of respirable silica risk across mining clusters
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Epidemiology & Occupational Screening Analytics
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Population-level monitoring of respirable silica risk across industrial mining clusters
-            </p>
           </div>
 
-          <button
-            onClick={fetchAnalytics}
-            className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh Data
-          </button>
-        </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/admin")}
+              className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow-md transition"
+            >
+              <Shield className="w-4 h-4 fill-slate-950" />
+              <span>Admin Panel</span>
+            </button>
 
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold transition"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Worker View</span>
+            </button>
+
+            <button
+              onClick={fetchAnalytics}
+              disabled={isLoading}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition disabled:opacity-50"
+              title="Refresh Analytics Data"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Counter KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span className="text-xs font-semibold text-slate-500">Registered Workers</span>
-            <div className="text-2xl font-extrabold text-slate-900 mt-1">
+          <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-xl">
+            <span className="text-xs font-semibold text-slate-400">Registered Workers</span>
+            <div className="text-2xl font-extrabold text-white mt-1">
               {data?.summary?.totalWorkers || 100}
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span className="text-xs font-semibold text-slate-500">Active Mines & Quarries</span>
-            <div className="text-2xl font-extrabold text-slate-900 mt-1">
+          <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-xl">
+            <span className="text-xs font-semibold text-slate-400">Active Mines & Quarries</span>
+            <div className="text-2xl font-extrabold text-white mt-1">
               {data?.summary?.totalMines || 14}
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span className="text-xs font-semibold text-slate-500">Total Screenings Logged</span>
-            <div className="text-2xl font-extrabold text-slate-900 mt-1">
+          <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-xl">
+            <span className="text-xs font-semibold text-slate-400">Total Screenings Logged</span>
+            <div className="text-2xl font-extrabold text-indigo-400 mt-1">
               {data?.summary?.totalScreenings || 128}
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span className="text-xs font-semibold text-slate-500">Hospital Referrals Issued</span>
-            <div className="text-2xl font-extrabold text-slate-900 mt-1">
+          <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-xl">
+            <span className="text-xs font-semibold text-slate-400">Hospital Referrals Issued</span>
+            <div className="text-2xl font-extrabold text-amber-400 mt-1">
               {data?.summary?.totalReferrals || 26}
             </div>
           </div>
@@ -126,16 +158,16 @@ const AdminDashboard = () => {
         {/* Charts Section */}
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Monthly Screening Volume */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-            <h3 className="font-bold text-sm text-slate-900 mb-4">
+          <div className="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 shadow-xl">
+            <h3 className="font-bold text-sm text-white mb-4">
               Monthly Screening Volume & High Risk Trends
             </h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={defaultMonthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="month" stroke="#64748B" fontSize={11} />
-                  <YAxis stroke="#64748B" fontSize={11} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+                  <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} />
+                  <YAxis stroke="#94A3B8" fontSize={11} />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="screenings" fill="#6366F1" name="Total Screenings" radius={[4, 4, 0, 0]} />
@@ -146,8 +178,8 @@ const AdminDashboard = () => {
           </div>
 
           {/* Risk Level Distribution */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-            <h3 className="font-bold text-sm text-slate-900 mb-4">
+          <div className="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 shadow-xl">
+            <h3 className="font-bold text-sm text-white mb-4">
               Workforce Screening Risk Distribution
             </h3>
             <div className="h-64 flex items-center justify-center">
@@ -175,16 +207,16 @@ const AdminDashboard = () => {
         </div>
 
         {/* District Breakdown Table */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
-          <h3 className="font-bold text-sm text-slate-900 mb-4 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-indigo-600" />
+        <div className="bg-slate-900/90 rounded-3xl border border-slate-800 shadow-xl p-6">
+          <h3 className="font-bold text-sm text-white mb-4 flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-indigo-400" />
             District-Wise Mining Risk Prevalence
           </h3>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
                   <th className="py-3 px-4">District</th>
                   <th className="py-3 px-4">Total Screened</th>
                   <th className="py-3 px-4">High Risk</th>
@@ -192,33 +224,33 @@ const AdminDashboard = () => {
                   <th className="py-3 px-4">Prevalence Ratio</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50">
-                  <td className="py-3 px-4 font-bold text-slate-900">Jaipur (Rajasthan)</td>
+              <tbody className="divide-y divide-slate-800/60">
+                <tr className="hover:bg-slate-800/40">
+                  <td className="py-3 px-4 font-bold text-white">Jaipur (Rajasthan)</td>
                   <td className="py-3 px-4">48</td>
-                  <td className="py-3 px-4 font-bold text-red-600">8</td>
-                  <td className="py-3 px-4 text-amber-600">12</td>
+                  <td className="py-3 px-4 font-bold text-red-400">8</td>
+                  <td className="py-3 px-4 text-amber-400">12</td>
                   <td className="py-3 px-4">16.6%</td>
                 </tr>
-                <tr className="hover:bg-slate-50">
-                  <td className="py-3 px-4 font-bold text-slate-900">Jodhpur (Rajasthan)</td>
+                <tr className="hover:bg-slate-800/40">
+                  <td className="py-3 px-4 font-bold text-white">Jodhpur (Rajasthan)</td>
                   <td className="py-3 px-4">36</td>
-                  <td className="py-3 px-4 font-bold text-red-600">6</td>
-                  <td className="py-3 px-4 text-amber-600">9</td>
+                  <td className="py-3 px-4 font-bold text-red-400">6</td>
+                  <td className="py-3 px-4 text-amber-400">9</td>
                   <td className="py-3 px-4">16.7%</td>
                 </tr>
-                <tr className="hover:bg-slate-50">
-                  <td className="py-3 px-4 font-bold text-slate-900">Karauli (Rajasthan)</td>
+                <tr className="hover:bg-slate-800/40">
+                  <td className="py-3 px-4 font-bold text-white">Karauli (Rajasthan)</td>
                   <td className="py-3 px-4">24</td>
-                  <td className="py-3 px-4 font-bold text-red-600">5</td>
-                  <td className="py-3 px-4 text-amber-600">7</td>
+                  <td className="py-3 px-4 font-bold text-red-400">5</td>
+                  <td className="py-3 px-4 text-amber-400">7</td>
                   <td className="py-3 px-4">20.8%</td>
                 </tr>
-                <tr className="hover:bg-slate-50">
-                  <td className="py-3 px-4 font-bold text-slate-900">Dhanbad (Jharkhand)</td>
+                <tr className="hover:bg-slate-800/40">
+                  <td className="py-3 px-4 font-bold text-white">Dhanbad (Jharkhand)</td>
                   <td className="py-3 px-4">20</td>
-                  <td className="py-3 px-4 font-bold text-red-600">3</td>
-                  <td className="py-3 px-4 text-amber-600">4</td>
+                  <td className="py-3 px-4 font-bold text-red-400">3</td>
+                  <td className="py-3 px-4 text-amber-400">4</td>
                   <td className="py-3 px-4">15.0%</td>
                 </tr>
               </tbody>
@@ -226,7 +258,8 @@ const AdminDashboard = () => {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </AdminSidebar>
   );
 };
 

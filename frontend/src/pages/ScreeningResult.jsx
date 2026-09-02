@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import axios from "../services/axios";
 import { useStore } from "../zustand/store";
-import Navbar from "../components/Navbar";
+import SidebarLayout from "../components/SidebarLayout";
 import RiskBadge from "../components/RiskBadge";
 
 const ScreeningResult = () => {
@@ -46,20 +46,18 @@ const ScreeningResult = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center text-xs text-slate-500">
+      <SidebarLayout>
+        <div className="flex-1 flex items-center justify-center text-xs text-slate-500 py-16">
           Loading screening risk evaluation...
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
   if (!screening) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center p-6 text-center">
+      <SidebarLayout>
+        <div className="flex-1 flex items-center justify-center p-6 text-center py-16">
           <div>
             <h3 className="font-bold text-slate-800 text-base">Screening Not Found</h3>
             <button
@@ -70,7 +68,7 @@ const ScreeningResult = () => {
             </button>
           </div>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
@@ -80,9 +78,7 @@ const ScreeningResult = () => {
   const overallScore = risk.overallScore || 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
-
+    <SidebarLayout>
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
         {/* Top Back Navigation */}
         <div className="flex items-center justify-between">
@@ -247,7 +243,7 @@ const ScreeningResult = () => {
           </p>
         </div>
       </main>
-    </div>
+    </SidebarLayout>
   );
 };
 

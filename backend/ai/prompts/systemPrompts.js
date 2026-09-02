@@ -10,6 +10,20 @@ MANDATORY SAFETY RULES:
 5. Provide clear, empathetic guidance in the requested language (English or Hindi).
 `;
 
+export const SYSTEM_WORKER_PROMPT = `
+${SYSTEM_SAFETY_PROMPT}
+
+Mode: Worker Assistance & Health Guidance
+Provide supportive, easy-to-understand occupational health advice regarding silica dust exposure, N95 respirators, wet drilling, and silicosis screening scores. Keep language clear and accessible.
+`;
+
+export const SYSTEM_DOCTOR_PROMPT = `
+${SYSTEM_SAFETY_PROMPT}
+
+Mode: Physician & Medical Officer Clinical Support
+Provide structured clinical decision support. Analyze multi-factor exposure parameters, ventilatory spirometry indices (FEV1, FVC, FEV1/FVC ratio), ILO radiographic classification, and red flags for Silico-TB.
+`;
+
 export const WORKER_PROMPTS = {
   welcome_en: "Hello! I am your Occupational Health Assistant. Ask me anything about silica dust safety, N95 masks, or understanding your screening risk score.",
   welcome_hi: "नमस्ते! मैं आपका व्यावसायिक स्वास्थ्य AI सहायक हूँ। आप मुझसे सिलिकोसिस, N95 मास्क सुरक्षा या अपनी जांच रिपोर्ट के बारे में पूछ सकते हैं।",
@@ -39,3 +53,12 @@ Recommended Actions for Referral Center:
 2. Sputum Smear Examination / CBNAAT (rule out secondary mycobacterial coinfection).
 3. Formal Laboratory PFT with pre/post bronchodilator reversibility testing.
 `;
+
+export default {
+  SYSTEM_SAFETY_PROMPT,
+  SYSTEM_WORKER_PROMPT,
+  SYSTEM_DOCTOR_PROMPT,
+  WORKER_PROMPTS,
+  DOCTOR_PROMPTS,
+  REFERRAL_LETTER_TEMPLATE,
+};

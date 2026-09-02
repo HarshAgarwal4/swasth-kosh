@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import Home from '../pages/Home.jsx';
 import SignUp from '../pages/signup.jsx';
 import LoginPage from '../pages/login.jsx';
-import { ProtectedRoute } from './Auth.jsx';
+import { ProtectedRoute, AdminRoute } from './Auth.jsx';
 import { Dashboard } from '../pages/Dashboard.jsx';
 import ScreeningWizard from '../pages/ScreeningWizard.jsx';
 import ScreeningResult from '../pages/ScreeningResult.jsx';
@@ -113,20 +113,19 @@ const Routes = createBrowserRouter([
   {
     path: '/admin',
     element: (
-      <ProtectedRoute>
+      <AdminRoute>
         <AdminPanel />
-      </ProtectedRoute>
+      </AdminRoute>
     ),
   },
   {
     path: '/admin/analytics',
     element: (
-      <ProtectedRoute>
+      <AdminRoute>
         <AdminDashboard />
-      </ProtectedRoute>
+      </AdminRoute>
     ),
   },
 ]);
 
 export default Routes;
-

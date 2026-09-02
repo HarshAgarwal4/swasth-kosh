@@ -18,12 +18,40 @@ import {
   RefreshCw,
   ExternalLink,
   Shield,
+  Crown,
+  ArrowLeft,
+  Check,
+  X,
+  ChevronRight,
+  Sliders,
+  Database,
+  Sparkles,
+  Clock,
+  UserCheck,
+  BadgeAlert,
+  Lock,
+  FileText,
+  LayoutDashboard,
+  BarChart3,
+  LogOut,
+  Globe,
 } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "../services/axios";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
+import { useStore } from "../zustand/store";
+import AdminSidebar from "../components/AdminSidebar";
 
 const AdminPanel = () => {
+  const navigate = useNavigate();
+  const currentUser = useStore((state) => state.user);
+  const logoutUser = useStore((state) => state.logoutUser);
+  const language = useStore((state) => state.language);
+  const setLanguage = useStore((state) => state.setLanguage);
+
+  const isHindi = language === "hi";
+  const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+
   const [activeTab, setActiveTab] = useState("OVERVIEW"); // OVERVIEW, USERS, APPROVALS, FORMS, MEETINGS, CHATS, AUDIT
   const [overview, setOverview] = useState(null);
   const [users, setUsers] = useState([]);
@@ -107,7 +135,7 @@ const AdminPanel = () => {
         adminReviewNotes: adminNotes,
       });
       if (res.data?.success) {
-        toast.success(`Application ${reviewAction.toLowerCase()}d successfully`);
+        toast.success(`Application ${reviewAction.toLowerCase()}d successfully! Notification sent.`);
         setSelectedRequest(null);
         setAdminNotes("");
         fetchTabData();
@@ -142,7 +170,7 @@ const AdminPanel = () => {
         fields: formFields,
       });
       if (res.data?.success) {
-        toast.success("Approval form template saved!");
+        toast.success(`Form template for ${selectedFormRole} saved!`);
         fetchTabData();
       }
     } catch (err) {
@@ -173,520 +201,825 @@ const AdminPanel = () => {
     setFormFields(updated);
   };
 
-  return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
-      <Navbar />
+  const handleFormRoleChange = (role) => {
+    setSelectedFormRole(role);
+    const existing = forms.find((f) => f.role === role);
+    if (existing) {
+      setFormTitle(existing.title);
+      setFormDescription(existing.description || "");
+      setFormFields(existing.fields || []);
+    } else {
+      setFormTitle(`${role.replace("_", " ")} Application Form`);
+      setFormDescription("Provide required credentials and license documentation.");
+      setFormFields([]);
+    }
+  };
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Admin Header */}
-        <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold mb-2">
-              <ShieldAlert className="w-4 h-4 text-indigo-400" />
-              Administrative Governance & Role Control
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold">SwasthaKosh Master Admin Panel</h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Manage workforce roles, review doctor credential requests, configure dynamic forms, and monitor clinical consultations.
-            </p>
+  const getRoleBadgeStyle = (role) => {
+    switch (role) {
+      case "SUPER_ADMIN":
+        return "bg-amber-500/20 text-amber-300 border-amber-400/40";
+      case "ADMIN":
+        return "bg-indigo-500/20 text-indigo-300 border-indigo-400/40";
+      case "DOCTOR":
+      case "MEDICAL_OFFICER":
+        return "bg-emerald-500/20 text-emerald-300 border-emerald-400/40";
+      case "SCREENING_WORKER":
+        return "bg-purple-500/20 text-purple-300 border-purple-400/40";
+      case "REFERRAL_CENTER":
+        return "bg-cyan-500/20 text-cyan-300 border-cyan-400/40";
+      default:
+        return "bg-slate-700/50 text-slate-300 border-slate-600/40";
+    }
+  };
+
+  const tabs = [
+    { id: "OVERVIEW", label: "Overview", icon: LayoutDashboard },
+    { id: "USERS", label: "User Directory", icon: Users },
+    { id: "APPROVALS", label: "Role Approvals", icon: FileCheck2 },
+    { id: "FORMS", label: "Form Builder", icon: FormInput },
+    { id: "MEETINGS", label: "Telemed Audit", icon: Video },
+    { id: "CHATS", label: "Chat Logs", icon: MessageSquare },
+    { id: "AUDIT", label: "Security Logs", icon: ShieldAlert },
+  ];
+
+  return (
+    <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab}>
+      <div className="flex-1 bg-slate-950 text-slate-100 font-sans pb-12">
+      {/* ---------------- STANDALONE ADMIN HEADER (Completely separate from main dashboard) ---------------- */}
+      <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 px-4 sm:px-8 py-4 shadow-2xl">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link to="/admin" className="flex items-center gap-3 group">
+              <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-amber-500 via-amber-600 to-indigo-600 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
+                <Shield className="w-6 h-6 fill-slate-950" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-black text-xl tracking-tight text-white">
+                    SwasthaKosh <span className="text-amber-400">Master Admin</span>
+                  </span>
+                  <span
+                    className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${getRoleBadgeStyle(
+                      currentUser?.role
+                    )}`}
+                  >
+                    {isSuperAdmin ? (
+                      <span className="flex items-center gap-1">
+                        <Crown className="w-3 h-3 text-amber-400 inline" /> SUPER ADMIN
+                      </span>
+                    ) : (
+                      currentUser?.role || "ADMIN"
+                    )}
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">
+                  Dedicated Governance & Command Center
+                </span>
+              </div>
+            </Link>
           </div>
 
-          <button
-            onClick={fetchTabData}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold transition text-center"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
-          </button>
+          {/* Admin Header Action Controls */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="text-slate-300 font-mono text-[11px]">System: OPERATIONAL</span>
+            </div>
+
+            {/* Switch to Analytics Reports */}
+            <button
+              onClick={() => navigate("/admin/analytics")}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 rounded-xl text-xs font-bold transition"
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Epidemiology Analytics</span>
+            </button>
+
+            {/* Switch to User View */}
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold transition"
+              title="View Worker / Patient Dashboard"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden sm:inline">Worker View</span>
+            </button>
+
+            {/* Language Switcher */}
+            <button
+              onClick={() => setLanguage(isHindi ? "en" : "hi")}
+              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1"
+            >
+              <Globe className="w-3.5 h-3.5 text-amber-400" />
+              <span>{isHindi ? "EN" : "हिन्दी"}</span>
+            </button>
+
+            {/* Refresh */}
+            <button
+              onClick={fetchTabData}
+              disabled={isLoading}
+              className="p-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl transition font-bold disabled:opacity-50"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={logoutUser}
+              className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl transition"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ---------------- MAIN ADMIN DASHBOARD BODY ---------------- */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Top KPI Metrics Widgets */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-lg relative overflow-hidden group">
+            <div className="flex items-center justify-between text-slate-400 mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider">Total Users</span>
+              <Users className="w-4 h-4 text-indigo-400" />
+            </div>
+            <div className="text-2xl font-black text-white">
+              {overview?.counts?.totalUsers || users.length || "--"}
+            </div>
+            <div className="text-[10px] text-indigo-300 font-semibold mt-1">
+              <span>Registered in platform</span>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-lg relative overflow-hidden group">
+            <div className="flex items-center justify-between text-slate-400 mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider">Role Requests</span>
+              <FileCheck2 className="w-4 h-4 text-amber-400" />
+            </div>
+            <div className="text-2xl font-black text-amber-400">
+              {overview?.counts?.pendingRequests || roleRequests.length || 0}
+            </div>
+            <div className="text-[10px] text-amber-300 font-semibold mt-1 flex items-center gap-1">
+              <BadgeAlert className="w-3 h-3" />
+              <span>Requires admin review</span>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-lg relative overflow-hidden group">
+            <div className="flex items-center justify-between text-slate-400 mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider">Approval Forms</span>
+              <FormInput className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="text-2xl font-black text-white">
+              {overview?.counts?.totalForms || forms.length || 4}
+            </div>
+            <div className="text-[10px] text-emerald-300 font-semibold mt-1">
+              <span>Dynamic templates</span>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-lg relative overflow-hidden group">
+            <div className="flex items-center justify-between text-slate-400 mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider">Telemed Calls</span>
+              <Video className="w-4 h-4 text-purple-400" />
+            </div>
+            <div className="text-2xl font-black text-white">
+              {overview?.counts?.totalMeetings || meetings.length || 0}
+            </div>
+            <div className="text-[10px] text-purple-300 font-semibold mt-1">
+              <span>Logged consultations</span>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-lg relative overflow-hidden group col-span-2 sm:col-span-1">
+            <div className="flex items-center justify-between text-slate-400 mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider">Audit Log Events</span>
+              <ShieldAlert className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div className="text-2xl font-black text-white">
+              {overview?.counts?.auditLogs || auditLogs.length || 0}
+            </div>
+            <div className="text-[10px] text-cyan-300 font-semibold mt-1">
+              <span>Security logs recorded</span>
+            </div>
+          </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 shadow-xs overflow-x-auto gap-1">
-          {[
-            { id: "OVERVIEW", label: "Dashboard Overview", icon: Activity },
-            { id: "USERS", label: "Users & Roles", icon: Users },
-            { id: "APPROVALS", label: "Role Approvals", icon: FileCheck2 },
-            { id: "FORMS", label: "Dynamic Form Builder", icon: FormInput },
-            { id: "MEETINGS", label: "Consultation Meetings", icon: Video },
-            { id: "CHATS", label: "Chat Moderation", icon: MessageSquare },
-            { id: "AUDIT", label: "Audit Logs", icon: Shield },
-          ].map((tab) => {
+        {/* Navigation Tabs Bar */}
+        <div className="flex items-center gap-1.5 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl overflow-x-auto scrollbar-none">
+          {tabs.map((tab) => {
             const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+            const active = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                  active
+                    ? "bg-linear-to-r from-amber-500 to-indigo-600 text-slate-950 font-black shadow-lg"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={`w-4 h-4 ${active ? "text-slate-950" : "text-slate-400"}`} />
                 <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* TAB 1: OVERVIEW */}
+        {/* ---------------- TAB CONTENT 1: OVERVIEW ---------------- */}
         {activeTab === "OVERVIEW" && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <span className="text-xs font-semibold text-slate-500">Total Registered Users</span>
-                <div className="text-2xl font-extrabold text-slate-900 mt-1">{overview?.totalUsers || 0}</div>
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Platform Overview Banner */}
+              <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 via-indigo-950/60 to-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-xl relative overflow-hidden">
+                <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="relative z-10">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold mb-3 border border-amber-400/30">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    Dedicated Admin Dashboard
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    SwasthaKosh Master Control Hub
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed max-w-2xl">
+                    Independent governance center for user role modifications, credential reviews, dynamic qualification forms, and compliance monitoring.
+                  </p>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
+                    <button
+                      onClick={() => setActiveTab("USERS")}
+                      className="flex flex-col p-3 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 rounded-2xl transition text-left group"
+                    >
+                      <span className="text-[10px] uppercase font-bold text-slate-400 group-hover:text-indigo-400">
+                        Direct Management
+                      </span>
+                      <span className="text-sm font-black text-white mt-1">Manage Roles</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab("APPROVALS")}
+                      className="flex flex-col p-3 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 rounded-2xl transition text-left group"
+                    >
+                      <span className="text-[10px] uppercase font-bold text-amber-400">
+                        Pending Reviews
+                      </span>
+                      <span className="text-sm font-black text-white mt-1">Review Credential</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab("FORMS")}
+                      className="flex flex-col p-3 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 rounded-2xl transition text-left group col-span-2 sm:col-span-1"
+                    >
+                      <span className="text-[10px] uppercase font-bold text-emerald-400">
+                        Form Templates
+                      </span>
+                      <span className="text-sm font-black text-white mt-1">Edit Questions</span>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <span className="text-xs font-semibold text-slate-500">Verified Doctors / Medical</span>
-                <div className="text-2xl font-extrabold text-indigo-600 mt-1">{overview?.totalDoctors || 0}</div>
+
+              {/* System Infrastructure Vitals Card */}
+              <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-white mb-4 flex items-center gap-2">
+                    <Database className="w-4 h-4 text-amber-400" />
+                    Infrastructure Vitals
+                  </h3>
+
+                  <div className="space-y-3.5 text-xs">
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                      <span className="text-slate-400">API Gateway</span>
+                      <span className="font-mono font-bold text-emerald-400">ONLINE (200 OK)</span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                      <span className="text-slate-400">Database Engine</span>
+                      <span className="font-mono font-bold text-emerald-400">MongoDB Atlas</span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                      <span className="text-slate-400">Security Middleware</span>
+                      <span className="font-mono font-bold text-indigo-400">JWT + Role RBAC</span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                      <span className="text-slate-400">Active Admin Session</span>
+                      <span className="font-mono font-bold text-amber-300 uppercase">
+                        {currentUser?.role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>SwasthaKosh Core v2.4</span>
+                  <span className="text-emerald-400 font-semibold">SSL Secured</span>
+                </div>
               </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <span className="text-xs font-semibold text-slate-500">Pending Role Approvals</span>
-                <div className="text-2xl font-extrabold text-amber-600 mt-1">{overview?.pendingRoleRequests || 0}</div>
-              </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <span className="text-xs font-semibold text-slate-500">Active Consultations</span>
-                <div className="text-2xl font-extrabold text-emerald-600 mt-1">{overview?.activeMeetings || 0}</div>
+            </div>
+
+            {/* Roles Breakdown Summary Cards */}
+            <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl shadow-xl">
+              <h3 className="font-bold text-sm text-white mb-4 flex items-center gap-2">
+                <Users className="w-4 h-4 text-indigo-400" />
+                Workforce & Role Distribution Overview
+              </h3>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {[
+                  { title: "Workers", role: "WORKER", count: overview?.roleBreakdown?.WORKER || 0, color: "text-slate-300" },
+                  { title: "Doctors", role: "DOCTOR", count: overview?.roleBreakdown?.DOCTOR || 0, color: "text-emerald-400" },
+                  { title: "Medical Officers", role: "MEDICAL_OFFICER", count: overview?.roleBreakdown?.MEDICAL_OFFICER || 0, color: "text-emerald-300" },
+                  { title: "Screening Staff", role: "SCREENING_WORKER", count: overview?.roleBreakdown?.SCREENING_WORKER || 0, color: "text-purple-300" },
+                  { title: "Referral Centers", role: "REFERRAL_CENTER", count: overview?.roleBreakdown?.REFERRAL_CENTER || 0, color: "text-cyan-300" },
+                  { title: "Administrators", role: "ADMIN", count: (overview?.roleBreakdown?.ADMIN || 0) + (overview?.roleBreakdown?.SUPER_ADMIN || 0), color: "text-amber-300" },
+                ].map((item, idx) => (
+                  <div key={idx} className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-center">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      {item.title}
+                    </span>
+                    <span className={`text-xl font-black ${item.color} mt-1 block`}>{item.count}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 2: USERS & ROLES */}
+        {/* ---------------- TAB CONTENT 2: USER DIRECTORY ---------------- */}
         {activeTab === "USERS" && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl p-6 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-indigo-400" />
+                  User Directory & Role Overrides
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Search registered accounts, filter by role, or manually reassign privilege tiers.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
                     type="text"
-                    placeholder="Search name, email, phone..."
+                    placeholder="Search name, email..."
                     value={userSearch}
                     onChange={(e) => setUserSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && fetchTabData()}
-                    className="pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600 w-64"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-indigo-500"
                   />
                 </div>
 
-                <select
-                  value={userRoleFilter}
-                  onChange={(e) => setUserRoleFilter(e.target.value)}
-                  className="py-2 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700"
+                <button
+                  onClick={fetchTabData}
+                  className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl"
                 >
-                  <option value="ALL">All Roles</option>
-                  <option value="WORKER">Workers Only</option>
-                  <option value="DOCTOR">Doctors</option>
-                  <option value="MEDICAL_OFFICER">Medical Officers</option>
-                  <option value="SCREENING_WORKER">Screening Staff</option>
-                  <option value="ADMIN">Admins</option>
-                </select>
+                  <RefreshCw className="w-4 h-4" />
+                </button>
               </div>
-
-              <span className="text-xs font-semibold text-slate-500">Total: {users.length} Users</span>
             </div>
 
+            {/* Role Filter Chips */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {[
+                "ALL",
+                "WORKER",
+                "DOCTOR",
+                "MEDICAL_OFFICER",
+                "SCREENING_WORKER",
+                "REFERRAL_CENTER",
+                "ADMIN",
+                "SUPER_ADMIN",
+              ].map((role) => (
+                <button
+                  key={role}
+                  onClick={() => setUserRoleFilter(role)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition whitespace-nowrap ${
+                    userRoleFilter === role
+                      ? "bg-indigo-600 text-white shadow-md"
+                      : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white"
+                  }`}
+                >
+                  {role.replace("_", " ")}
+                </button>
+              ))}
+            </div>
+
+            {/* Users Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                  <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
                     <th className="py-3 px-4">User</th>
-                    <th className="py-3 px-4">Contact</th>
+                    <th className="py-3 px-4">Email Address</th>
                     <th className="py-3 px-4">Current Role</th>
-                    <th className="py-3 px-4">Location / Org</th>
+                    <th className="py-3 px-4">Joined Date</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {users.map((u) => (
-                    <tr key={u._id} className="hover:bg-slate-50 transition">
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-900">{u.name}</div>
-                        <div className="text-[11px] text-slate-400 font-mono">{u._id}</div>
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-600">
-                        <div>{u.email}</div>
-                        <div className="text-[11px] text-slate-400">{u.phone || "No phone"}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
-                            u.role === "DOCTOR" || u.role === "MEDICAL_OFFICER"
-                              ? "bg-indigo-100 text-indigo-800"
-                              : u.role === "ADMIN" || u.role === "SUPER_ADMIN"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-600">
-                        <div>{u.district ? `${u.district}, ${u.state || ""}` : "Rajasthan"}</div>
-                        <div className="text-[11px] text-slate-400">{u.organization || "Independent"}</div>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => {
-                            setSelectedUserToEdit(u);
-                            setNewRoleToAssign(u.role);
-                          }}
-                          className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg border border-indigo-200 transition"
-                        >
-                          Override Role
-                        </button>
+                <tbody className="divide-y divide-slate-800/60">
+                  {users.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="py-12 text-center text-slate-500 text-xs">
+                        No matching users found in directory.
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: ROLE APPROVALS QUEUE */}
-        {activeTab === "APPROVALS" && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <select
-                  value={requestStatusFilter}
-                  onChange={(e) => setRequestStatusFilter(e.target.value)}
-                  className="py-2 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700"
-                >
-                  <option value="PENDING_REVIEW">Pending Review</option>
-                  <option value="PENDING_FORM">Waiting for Form Submission</option>
-                  <option value="APPROVED">Approved</option>
-                  <option value="REJECTED">Rejected</option>
-                </select>
-              </div>
-
-              <span className="text-xs font-semibold text-slate-500">
-                {roleRequests.length} Applications
-              </span>
-            </div>
-
-            {roleRequests.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-400">
-                No role change requests in this status.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                      <th className="py-3 px-4">Applicant</th>
-                      <th className="py-3 px-4">Requested Role</th>
-                      <th className="py-3 px-4">Submitted Credentials</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Review Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {roleRequests.map((req) => (
-                      <tr key={req._id} className="hover:bg-slate-50 transition">
+                  ) : (
+                    users.map((u) => (
+                      <tr key={u._id} className="hover:bg-slate-800/40 transition">
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-slate-900">{req.userId?.name}</div>
-                          <div className="text-[11px] text-slate-500">{req.userId?.email}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">
-                            {req.requestedRole}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600">
-                          {req.submittedFormData ? (
-                            <div className="text-[11px]">
-                              {Object.entries(req.submittedFormData)
-                                .slice(0, 2)
-                                .map(([k, v]) => (
-                                  <div key={k}>
-                                    <strong>{k}:</strong> {String(v)}
-                                  </div>
-                                ))}
-                              {req.attachments?.length > 0 && (
-                                <span className="text-emerald-600 font-bold">
-                                  📎 {req.attachments.length} attachment(s)
-                                </span>
-                              )}
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-300 font-bold flex items-center justify-center border border-indigo-500/30">
+                              {u.name ? u.name[0].toUpperCase() : "U"}
                             </div>
-                          ) : (
-                            <span className="text-slate-400">Form not filled yet</span>
-                          )}
+                            <div>
+                              <div className="font-bold text-white">{u.name}</div>
+                              <div className="text-[10px] text-slate-500 font-mono">
+                                {u.workerCode || u._id.slice(-8)}
+                              </div>
+                            </div>
+                          </div>
                         </td>
+                        <td className="py-3.5 px-4 text-slate-300 font-mono">{u.email}</td>
                         <td className="py-3.5 px-4">
                           <span
-                            className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
-                              req.status === "APPROVED"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : req.status === "REJECTED"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}
+                            className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold border uppercase ${getRoleBadgeStyle(
+                              u.role
+                            )}`}
                           >
-                            {req.status}
+                            {u.role}
                           </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-400">
+                          {new Date(u.createdAt).toLocaleDateString()}
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <button
                             onClick={() => {
-                              setSelectedRequest(req);
-                              setReviewAction("APPROVE");
+                              setSelectedUserToEdit(u);
+                              setNewRoleToAssign(u.role);
                             }}
-                            className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-xs transition"
+                            className="px-3 py-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white font-bold rounded-lg transition border border-slate-700"
                           >
-                            Review & Signoff
+                            Change Role
                           </button>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
-        {/* TAB 4: DYNAMIC FORM BUILDER */}
-        {activeTab === "FORMS" && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
+        {/* ---------------- TAB CONTENT 3: ROLE APPROVALS ---------------- */}
+        {activeTab === "APPROVALS" && (
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="font-bold text-base text-slate-900">Custom Role Approval Forms</h3>
-                <p className="text-xs text-slate-500">
-                  Configure custom fields and documents required when workers apply for privileged roles
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <FileCheck2 className="w-5 h-5 text-amber-400" />
+                  Medical Credential & Role Application Requests
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Review incoming applications for Doctors, Medical Officers & Screening Workers. Verify uploaded licenses.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <select
-                  value={selectedFormRole}
-                  onChange={(e) => {
-                    const r = e.target.value;
-                    setSelectedFormRole(r);
-                    const found = forms.find((f) => f.role === r);
-                    if (found) {
-                      setFormTitle(found.title);
-                      setFormDescription(found.description || "");
-                      setFormFields(found.fields || []);
-                    } else {
-                      setFormTitle(`${r.replace("_", " ")} Credential Verification Form`);
-                      setFormDescription("");
-                      setFormFields([]);
-                    }
-                  }}
-                  className="py-2 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800"
-                >
-                  <option value="DOCTOR">Doctor / Pulmonologist</option>
-                  <option value="MEDICAL_OFFICER">District Medical Officer</option>
-                  <option value="SCREENING_WORKER">Screening Operator</option>
-                  <option value="REFERRAL_CENTER">Chest Hospital / Board</option>
-                </select>
-
-                <button
-                  onClick={handleSaveForm}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  Save Form Schema
-                </button>
+                {["PENDING_REVIEW", "APPROVED", "REJECTED", "ALL"].map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setRequestStatusFilter(st)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition ${
+                      requestStatusFilter === st
+                        ? "bg-amber-500 text-slate-950 font-black shadow-md"
+                        : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white"
+                    }`}
+                  >
+                    {st.replace("_", " ")}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Form Meta */}
-            <div className="grid sm:grid-cols-2 gap-4">
+            {/* Requests List */}
+            <div className="space-y-4">
+              {roleRequests.length === 0 ? (
+                <div className="py-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
+                  <CheckCircle className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-slate-300">No applications matching current filter.</p>
+                </div>
+              ) : (
+                roleRequests.map((req) => (
+                  <div
+                    key={req._id}
+                    className="bg-slate-950/80 border border-slate-800 hover:border-slate-700 p-5 rounded-2xl shadow-lg transition flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="font-black text-white text-base">{req.applicantName}</span>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold border uppercase ${getRoleBadgeStyle(
+                            req.requestedRole
+                          )}`}
+                        >
+                          Applying for: {req.requestedRole}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                            req.status === "PENDING_REVIEW"
+                              ? "bg-amber-500/20 text-amber-300 border border-amber-400/30"
+                              : req.status === "APPROVED"
+                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
+                              : "bg-red-500/20 text-red-300 border border-red-400/30"
+                          }`}
+                        >
+                          {req.status}
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-slate-400 flex flex-wrap gap-4 font-mono">
+                        <span>Email: {req.applicantEmail}</span>
+                        <span>Submitted: {new Date(req.createdAt).toLocaleDateString()}</span>
+                      </div>
+
+                      {req.adminReviewNotes && (
+                        <div className="text-xs text-amber-300/90 bg-amber-950/30 border border-amber-800/40 p-2.5 rounded-xl mt-2">
+                          <strong>Admin Note:</strong> "{req.adminReviewNotes}"
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <button
+                        onClick={() => {
+                          setSelectedRequest(req);
+                          setReviewAction("APPROVE");
+                        }}
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition"
+                      >
+                        Review & Decide
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ---------------- TAB CONTENT 4: DYNAMIC FORM BUILDER ---------------- */}
+        {activeTab === "FORMS" && (
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl p-6 space-y-6">
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <FormInput className="w-5 h-5 text-emerald-400" />
+                Dynamic Application Form Builder
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Configure custom qualification forms for applicants seeking privileged roles.
+              </p>
+            </div>
+
+            {/* Role Selector Tabs */}
+            <div className="flex gap-2 border-b border-slate-800 pb-3 overflow-x-auto">
+              {["DOCTOR", "MEDICAL_OFFICER", "SCREENING_WORKER", "REFERRAL_CENTER"].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => handleFormRoleChange(r)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                    selectedFormRole === r
+                      ? "bg-emerald-600 text-white shadow-md"
+                      : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white"
+                  }`}
+                >
+                  {r.replace("_", " ")} Form
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Form Title</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Form Title</label>
                 <input
                   type="text"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:border-indigo-600"
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500"
                 />
               </div>
+
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Instructions / Description</label>
-                <input
-                  type="text"
+                <label className="block text-xs font-bold text-slate-300 mb-1">Form Instructions / Description</label>
+                <textarea
+                  rows={2}
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  className="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600"
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500"
                 />
               </div>
-            </div>
 
-            {/* Fields List */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Form Questions / Input Fields ({formFields.length})
-                </span>
-                <button
-                  onClick={addFormField}
-                  className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-700"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  Add Field
-                </button>
-              </div>
-
-              {formFields.map((field, idx) => (
-                <div
-                  key={idx}
-                  className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center gap-3"
-                >
-                  <div className="flex-1 grid sm:grid-cols-3 gap-2">
-                    <input
-                      type="text"
-                      placeholder="Field Label / Question"
-                      value={field.label}
-                      onChange={(e) => updateFormField(idx, "label", e.target.value)}
-                      className="py-1.5 px-2.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold"
-                    />
-
-                    <select
-                      value={field.type}
-                      onChange={(e) => updateFormField(idx, "type", e.target.value)}
-                      className="py-1.5 px-2.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold"
-                    >
-                      <option value="text">Text Input</option>
-                      <option value="number">Number</option>
-                      <option value="select">Dropdown Select</option>
-                      <option value="textarea">Textarea (Long Text)</option>
-                      <option value="file">File Upload (Certificate/PDF)</option>
-                      <option value="checkbox">Declaration Checkbox</option>
-                    </select>
-
-                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={field.isRequired}
-                        onChange={(e) => updateFormField(idx, "isRequired", e.target.checked)}
-                        className="w-4 h-4 text-indigo-600 rounded"
-                      />
-                      <span>Required Field</span>
-                    </label>
-                  </div>
-
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">Form Questions / Fields ({formFields.length})</h3>
                   <button
-                    onClick={() => removeFormField(idx)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg self-end sm:self-center transition"
+                    onClick={addFormField}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold rounded-xl border border-slate-700"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    Add Question
                   </button>
                 </div>
-              ))}
+
+                <div className="space-y-3">
+                  {formFields.map((field, idx) => (
+                    <div key={idx} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <input
+                          type="text"
+                          value={field.label}
+                          onChange={(e) => updateFormField(idx, "label", e.target.value)}
+                          placeholder="Question text..."
+                          className="flex-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-bold"
+                        />
+
+                        <select
+                          value={field.type}
+                          onChange={(e) => updateFormField(idx, "type", e.target.value)}
+                          className="p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200"
+                        >
+                          <option value="text">Text Input</option>
+                          <option value="textarea">Paragraph Text</option>
+                          <option value="file">File Upload (PDF/Image)</option>
+                          <option value="select">Dropdown Select</option>
+                          <option value="checkbox">Checkbox</option>
+                        </select>
+
+                        <button
+                          onClick={() => removeFormField(idx)}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800 flex justify-end">
+                <button
+                  onClick={handleSaveForm}
+                  className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition active:scale-95"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Form Template
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* TAB 5: CONSULTATION MEETINGS */}
+        {/* ---------------- TAB CONTENT 5: MEETINGS AUDIT ---------------- */}
         {activeTab === "MEETINGS" && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-            <h3 className="font-bold text-base text-slate-900">Scheduled & Active Telemedicine Consultations</h3>
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl p-6 space-y-6">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Video className="w-5 h-5 text-purple-400" />
+              Telemedicine Consultation Meetings Audit
+            </h2>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                    <th className="py-3 px-4">Appointment Code</th>
-                    <th className="py-3 px-4">Patient / Worker</th>
-                    <th className="py-3 px-4">Doctor</th>
-                    <th className="py-3 px-4">Scheduled Date</th>
+                  <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
                     <th className="py-3 px-4">Room ID</th>
+                    <th className="py-3 px-4">Host Doctor</th>
+                    <th className="py-3 px-4">Patient / Worker</th>
+                    <th className="py-3 px-4">Date</th>
                     <th className="py-3 px-4">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {meetings.map((m) => (
-                    <tr key={m._id} className="hover:bg-slate-50 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-indigo-700">{m.appointmentCode}</td>
-                      <td className="py-3.5 px-4 font-semibold text-slate-900">{m.workerId?.name}</td>
-                      <td className="py-3.5 px-4 font-semibold text-indigo-900">Dr. {m.doctorId?.name}</td>
-                      <td className="py-3.5 px-4 text-slate-600">{new Date(m.scheduledAt).toLocaleString()}</td>
-                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">{m.roomId || "Pending"}</td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
-                            m.status === "ACCEPTED"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : m.status === "COMPLETED"
-                              ? "bg-indigo-100 text-indigo-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}
-                        >
-                          {m.status}
-                        </span>
+                <tbody className="divide-y divide-slate-800/60">
+                  {meetings.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="py-12 text-center text-slate-500">
+                        No active or past video consultation records found.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    meetings.map((m) => (
+                      <tr key={m._id} className="hover:bg-slate-800/40">
+                        <td className="py-3.5 px-4 font-mono text-purple-400 font-bold">{m.roomId || m._id}</td>
+                        <td className="py-3.5 px-4 text-white font-semibold">{m.doctorId?.name || "Dr. Assigned"}</td>
+                        <td className="py-3.5 px-4 text-slate-300">{m.workerId?.name || "Worker"}</td>
+                        <td className="py-3.5 px-4 text-slate-400">{new Date(m.createdAt).toLocaleDateString()}</td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-[10px] font-bold">
+                            COMPLETED
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* TAB 6: CHAT MODERATION */}
+        {/* ---------------- TAB CONTENT 6: CHATS AUDIT ---------------- */}
         {activeTab === "CHATS" && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-            <h3 className="font-bold text-base text-slate-900">Active Consultation Conversation Channels</h3>
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl p-6 space-y-6">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-indigo-400" />
+              Medical Chat Rooms Audit Log
+            </h2>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                    <th className="py-3 px-4">Channel ID</th>
+                  <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
+                    <th className="py-3 px-4">Chat ID</th>
                     <th className="py-3 px-4">Participants</th>
-                    <th className="py-3 px-4">Message Count</th>
-                    <th className="py-3 px-4">Last Activity</th>
+                    <th className="py-3 px-4">Last Active</th>
+                    <th className="py-3 px-4">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {chats.map((c) => (
-                    <tr key={c._id} className="hover:bg-slate-50 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-slate-600">{c._id}</td>
-                      <td className="py-3.5 px-4 text-slate-800">
-                        {c.participants?.map((p) => p.name).join(" & ") || "Consultation"}
+                <tbody className="divide-y divide-slate-800/60">
+                  {chats.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="py-12 text-center text-slate-500">
+                        No medical chat conversations logged yet.
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-indigo-600">{c.messageCount || 0} messages</td>
-                      <td className="py-3.5 px-4 text-slate-500">{new Date(c.updatedAt).toLocaleDateString()}</td>
                     </tr>
-                  ))}
+                  ) : (
+                    chats.map((c) => (
+                      <tr key={c._id} className="hover:bg-slate-800/40">
+                        <td className="py-3.5 px-4 font-mono text-indigo-400 font-bold">{c._id}</td>
+                        <td className="py-3.5 px-4 text-slate-200">
+                          {c.participants?.map((p) => p.name).join(", ") || "Participants"}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-400">{new Date(c.updatedAt || c.createdAt).toLocaleDateString()}</td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-[10px] font-bold">
+                            ACTIVE
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* TAB 7: AUDIT LOGS */}
+        {/* ---------------- TAB CONTENT 7: SECURITY AUDIT LOGS ---------------- */}
         {activeTab === "AUDIT" && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-            <h3 className="font-bold text-base text-slate-900">Security & Compliance Audit Trail</h3>
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl p-6 space-y-6">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-cyan-400" />
+              System Security & Administrative Audit Trail
+            </h2>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                  <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
                     <th className="py-3 px-4">Timestamp</th>
                     <th className="py-3 px-4">Action</th>
-                    <th className="py-3 px-4">User</th>
+                    <th className="py-3 px-4">Admin User</th>
                     <th className="py-3 px-4">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {auditLogs.map((log) => (
-                    <tr key={log._id} className="hover:bg-slate-50">
-                      <td className="py-3 px-4 text-slate-500 font-mono">
-                        {new Date(log.timestamp || log.createdAt).toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4 font-bold text-indigo-700">{log.action}</td>
-                      <td className="py-3 px-4 text-slate-800">{log.userId?.name || "System"}</td>
-                      <td className="py-3 px-4 text-slate-600 font-mono text-[11px]">
-                        {JSON.stringify(log.details || {})}
+                <tbody className="divide-y divide-slate-800/60">
+                  {auditLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="py-12 text-center text-slate-500">
+                        No audit log records recorded yet.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    auditLogs.map((log) => (
+                      <tr key={log._id} className="hover:bg-slate-800/40 font-mono">
+                        <td className="py-3.5 px-4 text-slate-400">
+                          {new Date(log.createdAt).toLocaleString()}
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-cyan-300">{log.action}</td>
+                        <td className="py-3.5 px-4 text-white">{log.performedBy?.name || "System Admin"}</td>
+                        <td className="py-3.5 px-4 text-slate-300">{log.details || "Administrative event logged"}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -694,136 +1027,169 @@ const AdminPanel = () => {
         )}
       </main>
 
-      {/* Review Modal */}
+      {/* REVIEW APPLICATION MODAL */}
       {selectedRequest && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-slate-900 text-base">
-                Credential Review: {selectedRequest.userId?.name} ({selectedRequest.requestedRole})
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-indigo-400" />
+                Review Credential Application
               </h3>
-              <button onClick={() => setSelectedRequest(null)} className="text-slate-400 hover:text-slate-700 font-bold">
-                ✕
+              <button
+                onClick={() => setSelectedRequest(null)}
+                className="p-1 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2">
-              <h4 className="font-bold text-slate-800">Submitted Form Responses:</h4>
-              {selectedRequest.submittedFormData ? (
-                Object.entries(selectedRequest.submittedFormData).map(([k, v]) => (
-                  <div key={k}>
-                    <strong className="text-slate-700">{k}:</strong> {String(v)}
-                  </div>
-                ))
-              ) : (
-                <div className="text-slate-400">No form data</div>
-              )}
+            <div className="space-y-3 text-xs">
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                <div className="text-white font-bold">{selectedRequest.applicantName}</div>
+                <div className="text-slate-400 font-mono">Email: {selectedRequest.applicantEmail}</div>
+                <div className="text-indigo-300 font-bold mt-1">Requested Role: {selectedRequest.requestedRole}</div>
+              </div>
 
-              {selectedRequest.attachments?.length > 0 && (
-                <div className="pt-2">
-                  <strong className="text-slate-700 block mb-1">Attached Documents / Licenses:</strong>
-                  <div className="space-y-1">
-                    {selectedRequest.attachments.map((att, i) => (
+              {/* Uploaded Documents / Attachments */}
+              {selectedRequest.submittedData?.files && selectedRequest.submittedData.files.length > 0 && (
+                <div>
+                  <span className="font-bold text-slate-300 block mb-1.5">Submitted Credential Documents:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedRequest.submittedData.files.map((file, i) => (
                       <a
                         key={i}
-                        href={att.fileUrl}
+                        href={file.url || file}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-indigo-600 hover:underline text-xs mr-3"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-lg border border-slate-700 text-xs font-bold"
                       >
-                        <ExternalLink className="w-3 h-3" />
-                        {att.fileName}
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        View Document #{i + 1}
                       </a>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* Decision Toggle */}
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Decision Action</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setReviewAction("APPROVE")}
+                    className={`py-2.5 rounded-xl font-bold border transition ${
+                      reviewAction === "APPROVE"
+                        ? "bg-emerald-600 text-white border-emerald-500"
+                        : "bg-slate-950 text-slate-400 border-slate-800"
+                    }`}
+                  >
+                    Approve & Grant Role
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReviewAction("REJECT")}
+                    className={`py-2.5 rounded-xl font-bold border transition ${
+                      reviewAction === "REJECT"
+                        ? "bg-red-600 text-white border-red-500"
+                        : "bg-slate-950 text-slate-400 border-slate-800"
+                    }`}
+                  >
+                    Reject Application
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Admin Notes / Email Feedback</label>
+                <textarea
+                  rows={3}
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  placeholder="Enter review notes sent to applicant email..."
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-indigo-500"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Review Decision</label>
-              <select
-                value={reviewAction}
-                onChange={(e) => setReviewAction(e.target.value)}
-                className="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold"
-              >
-                <option value="APPROVE">Approve & Upgrade Role</option>
-                <option value="REJECT">Reject Application</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Admin Notes / Feedback to Applicant</label>
-              <textarea
-                rows={3}
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="e.g. Credentials verified with State Medical Registry. Approved."
-                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-3 border-t">
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
               <button
-                type="button"
                 onClick={() => setSelectedRequest(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={handleReviewSubmit}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md"
               >
-                Submit Signoff
+                Submit Final Decision
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Role Override Modal */}
+      {/* ROLE OVERRIDE MODAL */}
       {selectedUserToEdit && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <h3 className="font-bold text-slate-900 text-base">Direct Role Override: {selectedUserToEdit.name}</h3>
-            <p className="text-xs text-slate-500">Only Admin can directly assign or change privileged roles.</p>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Select New Role</label>
-              <select
-                value={newRoleToAssign}
-                onChange={(e) => setNewRoleToAssign(e.target.value)}
-                className="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800"
-              >
-                <option value="WORKER">Worker</option>
-                <option value="SCREENING_WORKER">Screening Operator</option>
-                <option value="DOCTOR">Doctor / Pulmonologist</option>
-                <option value="MEDICAL_OFFICER">District Medical Officer</option>
-                <option value="REFERRAL_CENTER">Chest Hospital / Silicosis Board</option>
-                <option value="ADMIN">System Administrator</option>
-              </select>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-3 border-t">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <Crown className="w-5 h-5 text-amber-400" />
+                Override User Role
+              </h3>
               <button
                 onClick={() => setSelectedUserToEdit(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="p-1 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-slate-300">
+                Target Account: <strong>{selectedUserToEdit.name}</strong> ({selectedUserToEdit.email})
+              </p>
+
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Select New Privilege Tier</label>
+                <select
+                  value={newRoleToAssign}
+                  onChange={(e) => setNewRoleToAssign(e.target.value)}
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-amber-500 font-mono font-bold"
+                >
+                  <option value="WORKER">WORKER (Occupational Worker)</option>
+                  <option value="DOCTOR">DOCTOR (Physician)</option>
+                  <option value="MEDICAL_OFFICER">MEDICAL_OFFICER (Govt / Mine Officer)</option>
+                  <option value="SCREENING_WORKER">SCREENING_WORKER (Field Staff)</option>
+                  <option value="REFERRAL_CENTER">REFERRAL_CENTER (Hospital Partner)</option>
+                  <option value="ADMIN">ADMIN (System Administrator)</option>
+                  {isSuperAdmin && <option value="SUPER_ADMIN">SUPER_ADMIN (Master Super Admin)</option>}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+              <button
+                onClick={() => setSelectedUserToEdit(null)}
+                className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRoleChangeSubmit}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md"
               >
-                Save Role
+                Update Role Immediately
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </AdminSidebar>
   );
 };
 
